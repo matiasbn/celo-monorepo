@@ -2,6 +2,7 @@ import { AppState, DeviceEventEmitter } from 'react-native'
 import { eventChannel } from 'redux-saga'
 import { call, cancelled, delay, fork, put, race, select, take } from 'redux-saga/effects'
 import { Actions, setGethConnected, setInitState } from 'src/geth/actions'
+import { isGethFreeMode } from 'src/geth/consts'
 import {
   FailedToFetchGenesisBlockError,
   FailedToFetchStaticNodesError,
@@ -39,6 +40,9 @@ export function* waitForGethConnectivity() {
 }
 
 function* waitForGethInstance() {
+  if (isGethFreeMode()) {
+    return GethInitOutcomes.SUCCESS
+  }
   try {
     const gethInstance = yield call(getGeth)
     if (gethInstance == null) {
@@ -126,6 +130,12 @@ function createNewBlockChannel() {
 
 function* monitorGeth() {
   const newBlockChannel = yield createNewBlockChannel()
+
+  if (isGethFreeMode()) {
+    yield put(setGethConnected(true))
+    yield delay(GETH_MONITOR_DELAY)
+    return
+  }
 
   while (true) {
     try {

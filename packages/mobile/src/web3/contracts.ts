@@ -1,5 +1,7 @@
+import { addLocalAccount as web3utilsAddLocalAccount, StaticNodeUtils } from '@celo/walletkit'
 import { DocumentDirectoryPath } from 'react-native-fs'
 import * as net from 'react-native-tcp'
+import { isGethFreeMode } from 'src/geth/consts'
 import Logger from 'src/utils/Logger'
 import { DEFAULT_TESTNET, Testnets } from 'src/web3/testnets'
 import Web3 from 'web3'
@@ -7,7 +9,7 @@ import Web3 from 'web3'
 // Logging tag
 const tag = 'web3/contracts'
 
-export const getWeb3Provider = (testnet: Testnets) => {
+const getIpcProvider = (testnet: Testnets) => {
   Logger.debug(tag, 'creating IPCProvider...')
 
   const ipcProvider = new Web3.providers.IpcProvider(
@@ -47,8 +49,59 @@ export const getWeb3Provider = (testnet: Testnets) => {
   return ipcProvider
 }
 
-export const setWeb3Provider = (testnet: Testnets) => {
-  web3.setProvider(getWeb3Provider(testnet))
+const getWebSocketProvider = (url: string) => {
+  Logger.debug(tag, 'creating WebsocketProvider...')
+  const wsProvider = new Web3.providers.WebsocketProvider(url)
+  Logger.debug(tag, 'created WebsocketProvider')
+
+  // In the future, we might decide to over-ride the error handler via the following code.
+  // wsProvider.on('error', () => {
+  //   Logger.showError('Error occurred')
+  // })
+  return wsProvider
 }
 
-export let web3 = new Web3(getWeb3Provider(DEFAULT_TESTNET))
+let web3: Web3
+
+export async function getWeb3() {
+  if (web3 === undefined) {
+    Logger.info(`Initializing web3, geth free mode: ${isGethFreeMode()}`)
+    if (isGethFreeMode()) {
+      Logger.debug('contracts@getWeb3', `Default testnet is ${DEFAULT_TESTNET}`)
+      const statipNodeIps: string = await StaticNodeUtils.getStaticNodesAsync(DEFAULT_TESTNET)
+      Logger.debug('contracts@getWeb3', `Static node IPs are ${statipNodeIps}`)
+      const enodeWithIp: string = JSON.parse(statipNodeIps)[0]
+      // Extract IP from "enode://<enode>@<IP>:<port>"
+      const staticNodeIp: string = enodeWithIp.split('@')[1].split(':')[0]
+      Logger.debug('contracts@getWeb3', `Static node IP is ${staticNodeIp}`)
+      if (staticNodeIp === undefined) {
+        throw new Error('Static node IP is undefined')
+      }
+      if (staticNodeIp === null) {
+        throw new Error('Static node IP is null')
+      }
+      const provider = getWebSocketProvider(`ws://${staticNodeIp}:8546`)
+      web3 = new Web3(provider)
+    } else {
+      const provider = getIpcProvider(DEFAULT_TESTNET)
+      web3 = new Web3(provider)
+    }
+  }
+  return web3
+}
+
+export function addLocalAccount(web3Instance: Web3, privateKey: string): Web3 {
+  if (web3Instance === null) {
+    throw new Error('web3 instance is null')
+  }
+  if (web3Instance === undefined) {
+    throw new Error('web3 instance is undefined')
+  }
+  if (privateKey === null) {
+    throw new Error('privateKey is null')
+  }
+  if (privateKey === undefined) {
+    throw new Error('privateKey is undefined')
+  }
+  return web3utilsAddLocalAccount(web3Instance, privateKey)
+}

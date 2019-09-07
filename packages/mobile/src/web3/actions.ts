@@ -1,9 +1,11 @@
 import { getPincode } from 'src/account/actions'
 import CeloAnalytics from 'src/analytics/CeloAnalytics'
 import { DefaultEventNames } from 'src/analytics/constants'
-import { UNLOCK_DURATION } from 'src/geth/consts'
+import { isGethFreeMode, UNLOCK_DURATION } from 'src/geth/consts'
 import Logger from 'src/utils/Logger'
-import { web3 } from 'src/web3/contracts'
+import { addLocalAccount, getWeb3 } from 'src/web3/contracts'
+import { readPrivateKeyFromLocalDisk } from 'src/web3/saga'
+import * as util from 'util'
 
 const TAG = 'web3/actions'
 
@@ -78,6 +80,7 @@ export const updateWeb3SyncProgress = (payload: {
 })
 
 async function isLocked(address: any) {
+  const web3 = await getWeb3()
   try {
     // Test account to see if it is unlocked
     await web3.eth.sign('', address)
@@ -89,31 +92,51 @@ async function isLocked(address: any) {
 
 export const unlockAccount = async (account: string) => {
   const isAccountLocked = await isLocked(account)
-  let success = false
   if (isAccountLocked) {
     const password = await getPincode()
-    // @ts-ignore
-    success = await web3.eth.personal
-      .unlockAccount(account, password, UNLOCK_DURATION)
-      // @ts-ignore
-      .catch((error: Error) => {
-        Logger.error(TAG + '@unlockAccount', 'Web3 account unlock failed with' + error)
-        return false
-      })
+    return performUnlock(account, password, UNLOCK_DURATION)
   } else {
-    success = true
+    return true
   }
-  return success
+}
+
+async function performUnlock(
+  account: string,
+  password: string,
+  unlockDuration: number
+): Promise<boolean> {
+  const web3 = await getWeb3()
+  if (isGethFreeMode()) {
+    Logger.info(TAG + '@unlockAccount', `unlockDuration is ignored in Geth free mode`)
+    const privateKey: string = await readPrivateKeyFromLocalDisk(account, password)
+    addLocalAccount(web3, privateKey)
+    return true
+  } else {
+    return (
+      web3.eth.personal
+        .unlockAccount(account, password, unlockDuration)
+        // @ts-ignore
+        .catch((error: Error) => {
+          Logger.error(
+            TAG + '@unlockAccount',
+            'Web3 account unlock failed with' + util.inspect(error)
+          )
+          return false
+        })
+    )
+  }
 }
 
 export const checkSyncProgress = () => ({ type: Actions.REQUEST_SYNC_PROGRESS })
 
-export function getLatestBlock() {
+export async function getLatestBlock() {
   Logger.debug(TAG, 'Getting latest block')
+  const web3 = await getWeb3()
   return web3.eth.getBlock('latest')
 }
 
-export function getBlock(blockNumber: number) {
+export async function getBlock(blockNumber: number) {
   Logger.debug(TAG, 'Getting block ' + blockNumber)
+  const web3 = await getWeb3()
   return web3.eth.getBlock(blockNumber)
 }
