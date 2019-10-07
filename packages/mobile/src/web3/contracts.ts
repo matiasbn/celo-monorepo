@@ -16,6 +16,10 @@ const tag = 'web3/contracts'
 export const web3: Web3 = getWeb3()
 
 export function isZeroSyncMode(): boolean {
+  Logger.debug(
+    tag,
+    'Zero sync mode: ' + (config[DEFAULT_TESTNET].syncMode === GethSyncMode.ZeroSync).toString()
+  )
   return config[DEFAULT_TESTNET].syncMode === GethSyncMode.ZeroSync
 }
 

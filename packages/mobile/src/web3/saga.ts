@@ -41,10 +41,12 @@ const BLOCK_CHAIN_CORRUPTION_ERROR = "Error: CONNECTION ERROR: Couldn't connect 
 // checks if web3 claims it is currently syncing and attempts to wait for it to complete
 export function* checkWeb3SyncProgress() {
   if (isZeroSyncMode()) {
+    Logger.debug(TAG, 'In zero sync mode, skipping checkWeb3SyncProgress')
     // In this mode, the check seems to fail with
     // web3/saga/checking web3 sync progress: Error: Invalid JSON RPC response: "":
     return true
   }
+  Logger.debug(TAG, 'isZeroSyncMode() is false')
   while (true) {
     try {
       Logger.debug(TAG, 'checkWeb3SyncProgress', 'Checking sync progress')
