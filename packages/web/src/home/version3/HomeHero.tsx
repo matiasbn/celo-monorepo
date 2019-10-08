@@ -1,12 +1,12 @@
 import * as React from 'react'
 import FadeIn from 'react-lazyload-fadein'
-import { Image, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import Fade from 'react-reveal/Fade'
 import { H1 } from 'src/fonts/Fonts'
 import { I18nProps, withNamespaces } from 'src/i18n'
 import { Cell, GridRow, Spans } from 'src/layout/GridRow'
 import { standardStyles, textStyles } from 'src/styles'
-const image = require('src/home/merchant.jpg')
+// const image = require('src/home/merchant.jpg')
 
 type Props = I18nProps
 
@@ -38,8 +38,28 @@ class HomeHero extends React.PureComponent<Props> {
           tabletStyle={[standardStyles.blockMarginTablet]}
           desktopStyle={[standardStyles.blockMargin]}
         >
-          <FadeIn height={IMAGE_HEIGHT}>
-            {(onload) => <Image onLoad={onload} style={styles.image} source={{ uri: image }} />}
+          <FadeIn
+            height={IMAGE_HEIGHT}
+            placeholder={
+              <img
+                style={{
+                  height: IMAGE_HEIGHT,
+                  width: 622,
+                }}
+                src={require(`src/home/merchant.jpg?lqip`)}
+              />
+            }
+          >
+            {(onload) => (
+              <img
+                onLoad={onload}
+                style={{
+                  height: IMAGE_HEIGHT,
+                  width: 622,
+                }}
+                src={require(`src/home/merchant.jpg?resize&size=200`)}
+              />
+            )}
           </FadeIn>
         </GridRow>
       </>

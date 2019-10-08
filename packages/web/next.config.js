@@ -1,11 +1,12 @@
 const withTypescript = require('@zeit/next-typescript')
 const withSass = require('@zeit/next-sass')
 const withImages = require('next-images')
+const withOptimizedImages = require('next-optimized-images')
 const webpack = require('webpack')
 const envConfig = require('./env-config')
 const serverEnvConfig = require('./server-env-config')
 
-module.exports = withImages(
+module.exports = withOptimizedImages(
   withTypescript(
     withSass({
       cssLoaderOptions: {
@@ -13,6 +14,7 @@ module.exports = withImages(
         localIdentName: '[local]___[hash:base64:5]',
       },
       cssModules: true,
+      optimizeImagesInDev: true,
       publicRuntimeConfig: envConfig,
       serverRuntimeConfig: serverEnvConfig,
       // options: {buildId, dev, isServer, defaultLoaders, webpack}   https://nextjs.org/docs#customizing-webpack-config
