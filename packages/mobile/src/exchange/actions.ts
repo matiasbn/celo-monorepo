@@ -79,21 +79,15 @@ export function* doFetchExchangeRate(makerAmount?: BigNumber, makerToken?: CURRE
 
   let dollarMakerAmount: BigNumber
   let goldMakerAmount: BigNumber
-  if (makerAmount && makerToken === CURRENCY_ENUM.GOLD) {
-    dollarMakerAmount = LARGE_DOLLARS_SELL_AMOUNT_IN_WEI
-    goldMakerAmount = makerAmount
-  } else if (makerAmount && makerToken === CURRENCY_ENUM.DOLLAR) {
-    dollarMakerAmount = makerAmount
-    goldMakerAmount = LARGE_GOLD_SELL_AMOUNT_IN_WEI
+
+  if (makerAmount) {
+    dollarMakerAmount =
+      makerToken === CURRENCY_ENUM.DOLLAR ? makerAmount : LARGE_DOLLARS_SELL_AMOUNT_IN_WEI
+    goldMakerAmount =
+      makerToken === CURRENCY_ENUM.GOLD ? makerAmount : LARGE_GOLD_SELL_AMOUNT_IN_WEI
   } else {
     dollarMakerAmount = LARGE_DOLLARS_SELL_AMOUNT_IN_WEI
     goldMakerAmount = LARGE_GOLD_SELL_AMOUNT_IN_WEI
-    if (makerAmount || makerToken) {
-      Logger.debug(
-        TAG,
-        'Using default makerAmount estimates. Need both makerAmount and makerToken to override. '
-      )
-    }
   }
 
   try {
