@@ -74,6 +74,41 @@ export const exchangeTokens = (
 
 export type ActionTypes = SetExchangeRateAction | ExchangeTokensAction
 
+export function* doFetchTobinTax() {
+  try {
+    yield call(getConnectedAccount)
+
+    const contractKit = newKitFromWeb3(web3)
+    const reserve = yield call(contractKit.contracts.getReserve)
+    // TODO once view function exists:
+    // const tobinTax: BigNumber = yield call(reserve.getUsdExchangeRate(dollarMakerAmount))
+
+    if (!tobinTax) {
+      Logger.error(TAG, 'Invalid exchange rate')
+      throw new Error('Invalid exchange rate')
+    }
+
+    Logger.debug(
+      TAG,
+      `Retrieved Tobin tax rate: 
+      ${tobinTax.toString()}`
+    )
+
+    // TODO store Tobin tax
+    /*
+    yield put(
+      setExchangeRate({
+        goldMaker: goldMakerExchangeRate.toString(),
+        dollarMaker: dollarMakerExchangeRate.toString(),
+      })
+    )
+    */
+  } catch (error) {
+    Logger.error(TAG, 'Error fetching Tobin tax', error)
+    yield put(showError(ErrorMessages.EXCHANGE_RATE_FAILED)) // TODO tobin tax
+  }
+}
+
 export function* doFetchExchangeRate(makerAmount?: BigNumber, makerToken?: CURRENCY_ENUM) {
   Logger.debug(TAG, 'Calling @doFetchExchangeRate')
 
@@ -95,7 +130,6 @@ export function* doFetchExchangeRate(makerAmount?: BigNumber, makerToken?: CURRE
 
     const contractKit = newKitFromWeb3(web3)
     const exchange = yield call(contractKit.contracts.getExchange)
-
     const dollarMakerExchangeRate: BigNumber = yield call(
       exchange.getUsdExchangeRate(dollarMakerAmount)
     )
