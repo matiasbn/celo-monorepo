@@ -1,3 +1,4 @@
+import { newKitFromWeb3 } from '@celo/contractkit'
 import {
   ContractUtils,
   getExchangeContract,
@@ -98,17 +99,14 @@ export function* doFetchExchangeRate(makerAmount?: BigNumber, makerToken?: CURRE
   try {
     yield call(getConnectedAccount)
 
+    const contractKit = newKitFromWeb3(web3)
+    const exchange = yield call(contractKit.contracts.getExchange)
+
     const dollarMakerExchangeRate: BigNumber = yield call(
-      ContractUtils.getExchangeRate,
-      web3,
-      CURRENCY_ENUM.DOLLAR,
-      new BigNumber(dollarMakerAmount)
+      exchange.getUsdExchangeRate(dollarMakerAmount)
     )
     const goldMakerExchangeRate: BigNumber = yield call(
-      ContractUtils.getExchangeRate,
-      web3,
-      CURRENCY_ENUM.GOLD,
-      new BigNumber(goldMakerAmount)
+      exchange.getGoldExchangeRate(dollarMakerAmount)
     )
 
     if (!dollarMakerExchangeRate || !goldMakerExchangeRate) {
