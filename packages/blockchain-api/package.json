@@ -14,7 +14,8 @@
     "build": "tsc -p .",
     "clean": "rm -rf dist coverage",
     "gcp-build": "npm run build",
-    "deploy": "./deploy.sh"
+    "deploy": "./deploy.sh",
+    "udpate-faucet": ""
   },
   "dependencies": {
     "@celo/contractkit": "0.1.6",
