@@ -198,6 +198,18 @@ export function* assignAccountFromPrivateKey(key: string) {
       }
       yield call(web3.eth.personal.unlockAccount, account, pincode, UNLOCK_DURATION)
     }
+    Logger.debug(
+      TAG + '@assignAccountFromPrivateKey',
+      `Created account from mnemonic and added to wallet: ${account}`
+    )
+
+    yield put(setAccount(account))
+    yield put(setAccountCreationTime())
+    yield call(assignDataKeyFromPrivateKey, key)
+
+    if (!isZeroSyncMode()) {
+      web3.eth.defaultAccount = account
+    }
 
     Logger.debug(TAG + '@assignAccountFromPrivateKey', `in zeroSyncMode: ${isZeroSyncMode()}`)
     return account
@@ -317,6 +329,7 @@ export function* switchToZeroSyncFromGeth() {
 }
 
 export function* switchZeroSyncMode(action: SetIsZeroSyncAction) {
+  /*
   Logger.debug(
     TAG + '@switchZeroSyncMode',
     ` zero sync mode will change to: ${action.zeroSyncMode}`
@@ -326,6 +339,7 @@ export function* switchZeroSyncMode(action: SetIsZeroSyncAction) {
   } else {
     yield call(switchToGethFromZeroSync)
   }
+  */
 }
 
 export function* watchZeroSyncMode() {
