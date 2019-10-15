@@ -47,6 +47,7 @@ const BLOCK_CHAIN_CORRUPTION_ERROR = "Error: CONNECTION ERROR: Couldn't connect 
 
 // checks if web3 claims it is currently syncing and attempts to wait for it to complete
 export function* checkWeb3SyncProgress() {
+  Logger.debug(TAG, '@checkWeb3SyncProgress', `zeroSyncMode: ${isZeroSyncMode()}`)
   if (isZeroSyncMode()) {
     // In this mode, the check seems to fail with
     // web3/saga/checking web3 sync progress: Error: Invalid JSON RPC response: "":
@@ -170,30 +171,35 @@ export function* assignAccountFromPrivateKey(key: string) {
 
     let account: string
 
-    // Save the account to a local file on the disk.
-    // This is done for all sync modes, to allow users to switch in to zero sync mode.
-    // Note that if geth is running it saves the encrypted key in the web3 keystore.
-    account = getAccountAddressFromPrivateKey(key)
-    yield savePrivateKeyToLocalDisk(account, key, pincode)
-
     if (isZeroSyncMode()) {
-      // If zero sync mode, add local account
+      const privateKey = String(key)
       Logger.debug(TAG + '@assignAccountFromPrivateKey', 'Init web3 with private key')
-      addLocalAccount(web3, key)
+      addLocalAccount(web3, privateKey)
+      // Save the account to a local file on the disk.
+      // This is only required in Geth free mode because if geth is running
+      // it has its own mechanism to save the encrypted key in its keystore.
+      account = getAccountAddressFromPrivateKey(privateKey)
+      yield savePrivateKeyToLocalDisk(account, privateKey, pincode)
     } else {
-      // Else geth is running, add to web3 accounts
-      account = yield call(addAccountToWeb3Keystore, key, currentAccount, pincode)
+      try {
+        // @ts-ignore
+        account = yield call(web3.eth.personal.importRawKey, String(key), pincode)
+      } catch (e) {
+        if (e.toString().includes('account already exists')) {
+          account = currentAccount
+          Logger.debug(
+            TAG + '@assignAccountFromPrivateKey',
+            'Importing same account as current one'
+          )
+        } else {
+          Logger.error(TAG + '@assignAccountFromPrivateKey', 'Error importing raw key')
+          throw e
+        }
+      }
+      yield call(web3.eth.personal.unlockAccount, account, pincode, UNLOCK_DURATION)
     }
 
-    Logger.debug(
-      TAG + '@assignAccountFromPrivateKey',
-      `Created account from mnemonic and added to wallet: ${account}`
-    )
-    yield put(setAccount(account))
-    yield put(setAccountCreationTime())
-
-    yield call(assignDataKeyFromPrivateKey, key)
-
+    Logger.debug(TAG + '@assignAccountFromPrivateKey', `in zeroSyncMode: ${isZeroSyncMode()}`)
     return account
   } catch (e) {
     Logger.error(
@@ -302,6 +308,7 @@ export function* switchToGethFromZeroSync() {
 export function* switchToZeroSyncFromGeth() {
   Logger.debug(TAG + 'Switching to zero sync from geth..')
   setZeroSyncMode(true)
+  Logger.debug(TAG + 'Switching provider to https')
   web3.setProvider(getWebSocketProvider(DEFAULT_INFURA_URL))
   const account = yield call(getConnectedAccount)
   yield call(ensureAccountSavedLocally, account)
