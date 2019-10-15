@@ -174,16 +174,36 @@ export function* assignAccountFromPrivateKey(key: string) {
     if (isZeroSyncMode()) {
       const privateKey = String(key)
       Logger.debug(TAG + '@assignAccountFromPrivateKey', 'Init web3 with private key')
+      Logger.debug(
+        TAG + '@assignAccountFromPrivateKey',
+        `About to add LocalAccount, zeroSync ${isZeroSyncMode()}`
+      )
       addLocalAccount(web3, privateKey)
+      Logger.debug(
+        TAG + '@assignAccountFromPrivateKey',
+        `added LocalAccount, zeroSync ${isZeroSyncMode()}`
+      )
       // Save the account to a local file on the disk.
       // This is only required in Geth free mode because if geth is running
       // it has its own mechanism to save the encrypted key in its keystore.
       account = getAccountAddressFromPrivateKey(privateKey)
       yield savePrivateKeyToLocalDisk(account, privateKey, pincode)
+      Logger.debug(
+        TAG + '@assignAccountFromPrivateKey',
+        `saved PrivateKeyToLocalDisk, zeroSync ${isZeroSyncMode()}`
+      )
     } else {
       try {
+        Logger.debug(
+          TAG + '@assignAccountFromPrivateKey',
+          `Importing raw key, zeroSync ${isZeroSyncMode()}`
+        )
         // @ts-ignore
         account = yield call(web3.eth.personal.importRawKey, String(key), pincode)
+        Logger.debug(
+          TAG + '@assignAccountFromPrivateKey',
+          `Imported raw key, zeroSync ${isZeroSyncMode()}`
+        )
       } catch (e) {
         if (e.toString().includes('account already exists')) {
           account = currentAccount
@@ -196,22 +216,45 @@ export function* assignAccountFromPrivateKey(key: string) {
           throw e
         }
       }
+      Logger.debug(
+        TAG + '@assignAccountFromPrivateKey',
+        `About to unlock account, zeroSync ${isZeroSyncMode()}`
+      )
       yield call(web3.eth.personal.unlockAccount, account, pincode, UNLOCK_DURATION)
+      Logger.debug(
+        TAG + '@assignAccountFromPrivateKey',
+        `Unlocked account, zeroSync ${isZeroSyncMode()}`
+      )
     }
     Logger.debug(
       TAG + '@assignAccountFromPrivateKey',
       `Created account from mnemonic and added to wallet: ${account}`
     )
 
+    Logger.debug(
+      TAG + '@assignAccountFromPrivateKey',
+      `Setting account, zeroSync ${isZeroSyncMode()}`
+    )
     yield put(setAccount(account))
+    Logger.debug(
+      TAG + '@assignAccountFromPrivateKey',
+      `Setting account creation time, zeroSync ${isZeroSyncMode()}`
+    )
     yield put(setAccountCreationTime())
     yield call(assignDataKeyFromPrivateKey, key)
+    Logger.debug(
+      TAG + '@assignAccountFromPrivateKey',
+      `Assigned data from key, zeroSync ${isZeroSyncMode()}`
+    )
 
     if (!isZeroSyncMode()) {
       web3.eth.defaultAccount = account
     }
 
-    Logger.debug(TAG + '@assignAccountFromPrivateKey', `in zeroSyncMode: ${isZeroSyncMode()}`)
+    Logger.debug(
+      TAG + '@assignAccountFromPrivateKey',
+      `Returning account, zeroSync ${isZeroSyncMode()}`
+    )
     return account
   } catch (e) {
     Logger.error(

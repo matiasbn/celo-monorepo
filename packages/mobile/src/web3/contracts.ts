@@ -100,19 +100,13 @@ function getInitialWeb3(): Web3 {
 }
 
 export function isZeroSyncMode() {
-  if (web3) {
-    Logger.debug('@isZeroSyncMode', `Current provider ${web3.currentProvider}`)
-    if (web3.currentProvider instanceof Web3.providers.HttpProvider) {
-      Logger.debug('@isZeroSyncMode', `is Http provider!`)
-      return true
-    }
-    Logger.debug('@isZeroSyncMode', `is not Http provider!`)
-    return false
-  } else {
-    // If web3 not initialized, return initial value
-    Logger.debug('@isZeroSyncMode', `web3 not yet intialized`)
-    return isInitiallyZeroSyncMode()
+  Logger.debug('@isZeroSyncMode', `Current provider ${web3.currentProvider}`)
+  if (web3.currentProvider instanceof Web3.providers.HttpProvider) {
+    Logger.debug('@isZeroSyncMode', `is Http provider!`)
+    return true
   }
+  Logger.debug('@isZeroSyncMode', `is not Http provider!`)
+  return false
 }
 
 export function addLocalAccount(web3Instance: Web3, privateKey: string) {
