@@ -89,21 +89,22 @@ export function* doFetchTobinTax() {
     yield call(getConnectedAccount)
 
     const contractKit = newKitFromWeb3(web3)
-    const reserve = yield contractKit.contracts.getReserve()
+    const web3reserveContract = yield contractKit._web3Contracts.getReserve()
 
-    const tobinTax = String(yield reserve.getUsdExchangeRate())
+    const tobinTax = String(yield web3reserveContract.getOrComputeTobinTax.call())
+    Logger.debug(TAG + '@doFetchTobinTax', `ABI returned: ${tobinTax}`)
     // TODO(anna) get Tobin tax from reserve contract
 
     if (!tobinTax) {
-      Logger.error(TAG, 'Invalid Tobin tax')
+      Logger.error(TAG + '@doFetchTobinTax', 'Invalid Tobin tax')
       throw new Error('Invalid Tobin tax')
     }
 
-    Logger.debug(TAG, `Retrieved Tobin tax: ${tobinTax}`)
+    Logger.debug(TAG + '@doFetchTobinTax', `Retrieved Tobin tax: ${tobinTax}`)
     yield put(setTobinTax(tobinTax))
   } catch (error) {
-    Logger.error(TAG, 'Error fetching Tobin tax', error)
-    yield put(showError(ErrorMessages.EXCHANGE_RATE_FAILED))
+    Logger.error(TAG + '@doFetchTobinTax', 'Error fetching Tobin tax', error)
+    yield put(showError(ErrorMessages.CALCULATE_EXCHANGE_FEE_FAILED))
   }
 }
 
