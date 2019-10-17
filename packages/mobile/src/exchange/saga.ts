@@ -12,7 +12,7 @@ import BigNumber from 'bignumber.js'
 import { call, put, select, spawn, takeEvery, takeLatest } from 'redux-saga/effects'
 import { showError } from 'src/alert/actions'
 import { ErrorMessages } from 'src/app/ErrorMessages'
-import { Actions, ExchangeTokensAction, setExchangeRate } from 'src/exchange/actions'
+import { Actions, ExchangeTokensAction, setExchangeRate, setTobinTax } from 'src/exchange/actions'
 import { ExchangeRatePair } from 'src/exchange/reducer'
 import { CURRENCY_ENUM } from 'src/geth/consts'
 import { RootState } from 'src/redux/reducers'
@@ -78,6 +78,31 @@ export function* doFetchExchangeRate(makerAmount?: BigNumber, makerToken?: CURRE
     )
   } catch (error) {
     Logger.error(TAG, 'Error fetching exchange rate', error)
+    yield put(showError(ErrorMessages.EXCHANGE_RATE_FAILED))
+  }
+}
+
+export function* doFetchTobinTax() {
+  Logger.debug(TAG + '@doFetchTobinTax', 'Fetching Tobin tax')
+
+  try {
+    yield call(getConnectedAccount)
+
+    const contractKit = newKitFromWeb3(web3)
+    const reserve = yield contractKit.contracts.getReserve()
+
+    const tobinTax = String(yield reserve.getUsdExchangeRate())
+    // TODO(anna) get Tobin tax from reserve contract
+
+    if (!tobinTax) {
+      Logger.error(TAG, 'Invalid Tobin tax')
+      throw new Error('Invalid Tobin tax')
+    }
+
+    Logger.debug(TAG, `Retrieved Tobin tax: ${tobinTax}`)
+    yield put(setTobinTax(tobinTax))
+  } catch (error) {
+    Logger.error(TAG, 'Error fetching Tobin tax', error)
     yield put(showError(ErrorMessages.EXCHANGE_RATE_FAILED))
   }
 }
@@ -236,6 +261,10 @@ async function convertToContractDecimals(value: BigNumber | string | number, con
   const decimals = await contract.methods.decimals().call()
   const one = new BigNumber(10).pow(new BigNumber(decimals).toNumber())
   return one.times(value)
+}
+
+export function* watchFetchTobinTax() {
+  yield takeLatest(Actions.FETCH_TOBIN_TAX, doFetchTobinTax)
 }
 
 export function* watchFetchExchangeRate() {

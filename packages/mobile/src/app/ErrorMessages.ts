@@ -41,4 +41,5 @@ export enum ErrorMessages {
   QR_FAILED_INVALID_ADDRESS = 'qrFailedInvalidAddress',
   CORRUPTED_CHAIN_DELETED = 'corruptedChainDeleted',
   CALCULATE_FEE_FAILED = 'calculateFeeFailed',
+  CALCULATE_EXCHANGE_FEE_FAILED = 'calculateFeeFailed',
 }
