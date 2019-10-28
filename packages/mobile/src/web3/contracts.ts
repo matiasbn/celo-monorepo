@@ -1,9 +1,9 @@
 import { addLocalAccount as web3utilsAddLocalAccount } from '@celo/walletkit'
 import { Platform } from 'react-native'
 import * as net from 'react-native-tcp'
-import { DEFAULT_INFURA_URL, DEFAULT_TESTNET } from 'src/config'
+import { DEFAULT_INFURA_URL } from 'src/config'
 import { IPC_PATH } from 'src/geth/geth'
-import networkConfig, { Testnets } from 'src/geth/networkConfig'
+import networkConfig from 'src/geth/networkConfig'
 import Logger from 'src/utils/Logger'
 import Web3 from 'web3'
 import { Provider } from 'web3/providers'
@@ -17,7 +17,7 @@ export function isInitiallyZeroSyncMode() {
   return networkConfig.initiallyZeroSync
 }
 
-function getIpcProvider(testnet: Testnets) {
+function getIpcProvider() {
   Logger.debug(tag, 'creating IPCProvider...')
 
   const ipcProvider = new Web3.providers.IpcProvider(IPC_PATH, net)
@@ -78,19 +78,21 @@ function getWeb3(): Web3 {
     Logger.debug('contracts@getWeb3', `Connecting to url ${url}`)
     return new Web3(getWebSocketProvider(url))
   } else {
-    return new Web3(getIpcProvider(DEFAULT_TESTNET))
+    return new Web3(getIpcProvider())
   }
 }
 
 // Mutates web3 with new provider
-export function switchWeb3ProviderForSyncMode(zeroSync: boolean) {
+export async function switchWeb3ProviderForSyncMode(zeroSync: boolean) {
   if (zeroSync) {
     web3.setProvider(getWebSocketProvider(DEFAULT_INFURA_URL))
     Logger.info(`${tag}@switchWeb3ProviderForSyncMode`, `Set provider to ${DEFAULT_INFURA_URL}`)
   } else {
-    web3.setProvider(getIpcProvider(DEFAULT_TESTNET))
+    web3.setProvider(getIpcProvider())
     Logger.info(`${tag}@switchWeb3ProviderForSyncMode`, `Set provider to IPC provider`)
   }
+  const connected = await web3.eth.net.isListening()
+  Logger.info(`${tag}@switchWeb3ProviderForSyncMode`, `Connected: ${connected}`)
 }
 
 export function addLocalAccount(web3Instance: Web3, privateKey: string) {
