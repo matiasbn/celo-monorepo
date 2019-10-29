@@ -153,6 +153,10 @@ async function initGeth() {
   }
 }
 
+export async function clearGethCache() {
+  gethInstance = null
+}
+
 export async function getGeth(): Promise<typeof gethInstance> {
   Logger.debug('Geth@getGeth', 'Getting Geth Instance')
   if (!gethInstance) {
