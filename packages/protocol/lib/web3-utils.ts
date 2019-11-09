@@ -281,18 +281,23 @@ export async function createInviteCode(
   gasPrice: number,
   web3: Web3
 ) {
+  console.log("Inside create invite")
   // TODO(asa): This number was made up
   const verificationGasAmount = new BigNumber(10000000)
   if (!gasPrice) {
     // TODO: this default gas price might not be accurate
     gasPrice = 0
   }
+  console.log("gasPrice")
   const temporaryWalletAccount = await web3.eth.accounts.create()
+  console.log("temp account")
   const temporaryAddress = temporaryWalletAccount.address
   // Buffer.from doesn't expect a 0x for hex input
   const privateKeyHex = temporaryWalletAccount.privateKey.substring(2)
   const inviteCode = Buffer.from(privateKeyHex, 'hex').toString('base64')
+  console.log("Transferring Gold")
   await goldToken.transfer(temporaryAddress, verificationGasAmount.times(gasPrice).toString())
+  console.log("Transferring StableToken")
   await stableToken.transfer(temporaryAddress, invitationStableTokenAmount.toString())
   return [temporaryAddress, inviteCode]
 }
