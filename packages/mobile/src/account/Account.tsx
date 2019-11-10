@@ -88,6 +88,10 @@ export class Account extends React.Component<Props, State> {
     navigate(Screens.Profile)
   }
 
+  verify() {
+    navigate(Screens.VerificationEducationScreen)
+  }
+
   backupScreen() {
     navigate(Screens.BackupIntroduction)
   }
@@ -214,6 +218,7 @@ export class Account extends React.Component<Props, State> {
 
   render() {
     const { t, account } = this.props
+    const { verified } = this.state
 
     return (
       <ScrollView style={style.scrollView}>
@@ -231,6 +236,9 @@ export class Account extends React.Component<Props, State> {
             </View>
           </View>
           <View style={style.containerList}>
+            {!verified && (
+              <SettingsItem title={t('nuxVerification2:education.header')} onPress={this.verify} />
+            )}
             <SettingsItem
               title={t('backupKeyFlow6:backupAndRecovery')}
               onPress={this.backupScreen}

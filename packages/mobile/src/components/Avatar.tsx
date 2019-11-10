@@ -45,7 +45,12 @@ function getDisplayName({ name, recipient, e164Number, address, t }: Props) {
 
 export function Avatar(props: Props) {
   const defaultCountryCode = useSelector(defaultCountryCodeSelector)
-  const { recipient, e164Number, iconSize = DEFAULT_ICON_SIZE } = props
+  const { recipient, iconSize = DEFAULT_ICON_SIZE } = props
+  let { e164Number } = props
+
+  if (!e164Number && recipient && recipient.e164PhoneNumber) {
+    e164Number = recipient.e164PhoneNumber
+  }
 
   return (
     <BaseAvatar
