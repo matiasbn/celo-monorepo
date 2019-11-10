@@ -19,6 +19,8 @@ import {
   AccountsInstance,
   MockElectionContract,
   MockElectionInstance,
+  TestAttestationsContract,
+  TestAttestationsInstance,
   MockLockedGoldContract,
   MockLockedGoldInstance,
   MockRandomContract,
@@ -29,6 +31,12 @@ import {
   RegistryInstance,
   TestAttestationsContract,
   TestAttestationsInstance,
+  MockElectionInstance,
+  TestRandomContract,
+  TestRandomInstance,
+  MockElectionContract,
+  RegistryContract,
+  RegistryInstance,
 } from 'types'
 import { getParsedSignatureOfAddress } from '../../lib/signing-utils'
 

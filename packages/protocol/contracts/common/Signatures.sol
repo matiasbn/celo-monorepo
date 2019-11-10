@@ -30,7 +30,7 @@ library Signatures {
     returns (address)
   {
     bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-    bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, messageHash));
+    bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
     return ecrecover(prefixedHash, v, r, s);
   }
 }
