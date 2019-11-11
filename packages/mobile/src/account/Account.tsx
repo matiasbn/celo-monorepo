@@ -236,9 +236,13 @@ export class Account extends React.Component<Props, State> {
             </View>
           </View>
           <View style={style.containerList}>
-            {!verified && (
-              <SettingsItem title={t('nuxVerification2:education.header')} onPress={this.verify} />
-            )}
+            {verified !== undefined &&
+              !verified && (
+                <SettingsItem
+                  title={t('nuxVerification2:education.header')}
+                  onPress={this.verify}
+                />
+              )}
             <SettingsItem
               title={t('backupKeyFlow6:backupAndRecovery')}
               onPress={this.backupScreen}
