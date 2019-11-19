@@ -1,18 +1,25 @@
+import ApolloClient from 'apollo-boost'
 import App, { Container } from 'next/app'
 import getConfig from 'next/config'
 import * as React from 'react'
+import { ApolloProvider } from 'react-apollo'
 import { View } from 'react-native'
 import config from 'react-reveal/globals'
+import scrollIntoView from 'scroll-into-view'
 import { canTrack } from 'src/analytics/analytics'
 import Header from 'src/header/Header.3'
 import { ScreenSizeProvider } from 'src/layout/ScreenSize'
 import Footer from 'src/shared/Footer.3'
+import { HEADER_HEIGHT } from 'src/shared/Styles'
 import Sentry, { initSentry } from '../fullstack/sentry'
 import { appWithTranslation } from '../src/i18n'
-import { HEADER_HEIGHT } from 'src/shared/Styles'
-import scrollIntoView from 'scroll-into-view'
 
 config({ ssrReveal: true })
+
+const client = new ApolloClient({
+  uri: 'https://localhost:3000/graphql',
+})
+
 class MyApp extends App {
   componentDidMount() {
     if (canTrack()) {
@@ -52,13 +59,18 @@ class MyApp extends App {
     return (
       <Container>
         <ScreenSizeProvider>
-          {this.skipHeader() || <Header />}
-          <Component {...pageProps} />
-          {this.skipHeader() || (
-            <View>
-              <Footer />
-            </View>
-          )}
+          <ApolloProvider
+            // @ts-ignore
+            client={client}
+          >
+            {this.skipHeader() || <Header />}
+            <Component {...pageProps} />
+            {this.skipHeader() || (
+              <View>
+                <Footer />
+              </View>
+            )}
+          </ApolloProvider>
         </ScreenSizeProvider>
       </Container>
     )

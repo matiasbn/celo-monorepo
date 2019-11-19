@@ -15,7 +15,7 @@ interface Fields extends FieldSet {
 //   error: number
 // }
 
-enum AssetSheet {
+export enum AssetSheet {
   Icons = 'Icons',
   Illustrations = 'Illustrations',
   AbstractGraphics = 'Abstract Graphics',

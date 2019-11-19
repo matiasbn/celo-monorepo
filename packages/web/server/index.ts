@@ -17,9 +17,15 @@ import getAssets from './Assetbase'
 import { faucetOrInviteController } from './controllers'
 import getFormattedEvents from './EventHelpers'
 import { submitFellowApp } from './FellowshipApp'
+import { resolvers, typeDefs } from './graphql'
 import mailer from './mailer'
 import { getFormattedMediumArticles } from './mediumAPI'
+import { ApolloServer } from 'apollo-server-express'
+import fetch from 'cross-fetch'
 const port = parseInt(process.env.PORT, 10) || 3000
+
+// @ts-ignore
+global.fetch = fetch
 
 const dev = process.env.NEXT_DEV === 'true'
 const app = next({ dev })
@@ -38,11 +44,15 @@ function wwwRedirect(req, res, nextAction) {
   await app.prepare()
   const server = express()
 
+  const graphQL = new ApolloServer({ typeDefs, resolvers, introspection: true, playground: true })
+
   server.use(helmet())
   server.use(wwwRedirect)
   server.enable('trust proxy')
   server.use(compression())
   server.use(slashes(false))
+
+  graphQL.applyMiddleware({ app: server, path: '/graphql2' })
 
   if (!dev) {
     server.use(expressEnforcesSsl())
